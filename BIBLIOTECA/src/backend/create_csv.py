@@ -105,7 +105,6 @@ def convert_date(date_str):
     except ValueError:
         pass
     
-    # Agregar aquí más bloques de código para otros formatos de fecha si es necesario
     
     print(f"Fecha no reconocida: {date_str}")
     return None

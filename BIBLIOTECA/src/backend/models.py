@@ -11,8 +11,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS Usuario (
             id INTEGER PRIMARY KEY,
             nombre VARCHAR(100),  -- Nombre del usuario
-            email VARCHAR(255) UNIQUE,  -- Correo electrónico del usuario (debe ser único)
-            contraseña TEXT  -- Contraseña del usuario
+            correo VARCHAR(255) UNIQUE,  -- Correo electrónico del usuario (debe ser único)
+            contrasena TEXT  -- Contraseña del usuario
         )
     ''')
     
