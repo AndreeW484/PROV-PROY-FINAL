@@ -7,7 +7,8 @@ def register_routes(app):
     @app.route("/")
     def index():
         return "¡Bienvenido a la aplicación!"
-
+    
+    # Ruta para obtener todos los libros
     @app.route('/libros/', methods=['GET'])
     def get_all_libros():
         conn = get_db_connection()
@@ -15,6 +16,7 @@ def register_routes(app):
         conn.close()
         return jsonify([dict(libro) for libro in libros])
 
+    # Ruta para obtener libros de un usuario
     @app.route('/usuarios/<int:id_usuario>/libros', methods=['GET'])
     def get_libros_usuario(id_usuario):
         conn = get_db_connection()
@@ -27,6 +29,7 @@ def register_routes(app):
         conn.close()
         return jsonify([dict(libro) for libro in libros_usuario])
 
+    # Ruta para agregar un libro a la biblioteca de un usuario
     @app.route('/usuarios/<int:id_usuario>/libros', methods=['POST'])
     def agregar_libro_usuario(id_usuario):
         data = request.json
@@ -51,6 +54,7 @@ def register_routes(app):
 
         return jsonify({"message": "Libro agregado a la biblioteca del usuario con ID {}".format(id_usuario)}), 201
 
+    # Ruta para eliminar un libro de la biblioteca de un usuario
     @app.route('/usuarios/<int:id_usuario>/libros/<int:id_libro>', methods=['DELETE'])
     def eliminar_libro_usuario(id_usuario, id_libro):
         conn = get_db_connection()
@@ -72,6 +76,7 @@ def register_routes(app):
 
         return jsonify({"message": "Libro eliminado de la biblioteca del usuario con ID {}".format(id_usuario)}), 200
 
+    # Ruta para iniciar sesión de usuario
     @app.route('/usuarios/login', methods=['POST'])
     def login_usuario():
         data = request.json
@@ -94,6 +99,7 @@ def register_routes(app):
         else:
             return jsonify({"message": "Correo electrónico o contraseña incorrectos"}), 401
 
+    # Ruta para registrar un nuevo usuario
     @app.route('/usuarios/registro', methods=['POST'])
     def registro_usuario():
         data = request.json
@@ -117,6 +123,7 @@ def register_routes(app):
 
         return jsonify({"message": "Usuario registrado correctamente"}), 201
 
+    # Ruta para obtener detalles del usuario autenticado
     @app.route('/usuarios/detalles', methods=['GET'])
     @jwt_required()
     def obtener_detalles_usuario():
@@ -128,6 +135,7 @@ def register_routes(app):
 
         return jsonify({"usuario": dict(usuario)}), 200
 
+    # Ruta para actualizar información del usuario
     @app.route('/usuarios/detalles', methods=['PUT'])
     @jwt_required()
     def actualizar_usuario():
