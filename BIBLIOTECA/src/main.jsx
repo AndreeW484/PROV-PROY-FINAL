@@ -10,6 +10,7 @@ const theme = createTheme({
     h4: {
       fontWeight: 'bolder',
       fontSize: '5em',
+
     },
     button: {
       fontWeight: 600,
@@ -24,6 +25,12 @@ const theme = createTheme({
     },
     primary: {
       main: '#800000',
+    },
+    secondary:{
+      main: '#C3FDB8'
+    },
+    info: {
+      main: '#7575CF'
     }
   },
 });

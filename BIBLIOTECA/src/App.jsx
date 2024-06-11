@@ -1,61 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Login from './frontend/components/PLogin';
 import RepositorioLibros from './frontend/components/RepositorioLibros';
 import BibliotecaPersonal from './frontend/components/BibliotecaPersonal';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(null); 
-  const [librosRepositorio, setLibrosRepositorio] = useState([]);
+  const [userId, setUserId] = useState(null);
   const [librosBiblioteca, setLibrosBiblioteca] = useState([]);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      
-      fetch('http://localhost:5000/libros')
-        .then(response => response.json())
-        .then(data => setLibrosRepositorio(data))
-        .catch(error => console.error('Error al obtener los libros:', error));
-    }
-  }, [isLoggedIn]);
+  const [paginaActual, setPaginaActual] = useState('login');
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    
-    fetch(`http://localhost:5000/usuarios/${userId}/libros`)
-      .then(response => response.json())
-      .then(data => setLibrosBiblioteca(data))
-      .catch(error => console.error('Error al obtener los libros de la biblioteca personal:', error));
   };
 
-  const handleAgregarLibro = (libro) => {
-    
-    setLibrosBiblioteca([...librosBiblioteca, libro]);
-  };
-
-  const handleMarcarLeido = (libro) => {
-    
-    setLibrosBiblioteca(librosBiblioteca.map(l => l.id === libro.id ? { ...l, leido: true } : l));
-  };
-
-  const handleEliminarLibro = (libro) => {
-    
-    setLibrosBiblioteca(librosBiblioteca.filter(l => l.id !== libro.id));
+  const handleNavigate = (pagina) => {
+    setPaginaActual(pagina);
   };
 
   return (
     <div className="App">
-      {!isLoggedIn ? (
+      {paginaActual === 'login' && !isLoggedIn && (
         <Login onLogin={handleLogin} />
-      ) : (
+      )}
+      {paginaActual !== 'login' && isLoggedIn && (
         <>
           <button onClick={() => setIsLoggedIn(false)}>Cerrar sesión</button>
-          <RepositorioLibros libros={librosRepositorio} onAgregarLibro={handleAgregarLibro} />
-          <BibliotecaPersonal libros={librosBiblioteca} onMarcarLeido={handleMarcarLeido} onEliminarLibro={handleEliminarLibro} />
+          {paginaActual === 'repositorio' && (
+            <RepositorioLibros onNavigate={handleNavigate} />
+          )}
+          {paginaActual === 'biblioteca' && (
+            <BibliotecaPersonal libros={librosBiblioteca} onNavigate={handleNavigate} />
+          )}
+        </>
+      )}
+      {isLoggedIn && (
+        <>
+          <button onClick={() => handleNavigate('repositorio')}>Ver Repositorio de Libros</button>
+          <button onClick={() => handleNavigate('biblioteca')}>Ver Biblioteca Personal</button>
         </>
       )}
     </div>
   );
 }
-export default App;
 
+export default App;
