@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = () => {
@@ -11,12 +11,17 @@ const Login = ({ onLogin }) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ correo_electronico: email, contrasena: password }),
+      body: JSON.stringify({ correo: correo, contrasena: contrasena }),
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
     .then(data => {
-      if (data.message === 'Inicio de sesión exitoso. Bienvenido!') {
-        onLogin();
+      if (data.access_token) {
+        onLogin(data.access_token);
       } else {
         setError(data.message);
       }
@@ -34,14 +39,14 @@ const Login = ({ onLogin }) => {
       <input
         type="text"
         placeholder="Correo electrónico"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={correo}
+        onChange={(e) => setCorreo(e.target.value)}
       />
       <input
-        type="password"
+        type="password"  
         placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        value={contrasena}
+        onChange={(e) => setContrasena(e.target.value)}
       />
       <button onClick={handleLogin}>Iniciar sesión</button>
     </div>
@@ -49,3 +54,4 @@ const Login = ({ onLogin }) => {
 };
 
 export default Login;
+

@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
 from models import get_db_connection
 
 def register_routes(app):
@@ -77,15 +78,17 @@ def register_routes(app):
         correo = data.get('correo')
         contrasena = data.get('contrasena')
 
+        if not correo or not contrasena:
+            return jsonify({"message": "Correo y contraseña son requeridos"}), 400
+
         conn = get_db_connection()
         usuario = conn.execute('''
             SELECT * FROM Usuario 
-            WHERE correo = ? AND contrasena = ?
-        ''', (correo, contrasena)).fetchone()
-
+            WHERE correo = ?
+        ''', (correo,)).fetchone()
         conn.close()
 
-        if usuario:
+        if usuario and check_password_hash(usuario['contrasena'], contrasena):
             access_token = create_access_token(identity=usuario['id'])
             return jsonify({"access_token": access_token}), 200
         else:
@@ -98,13 +101,17 @@ def register_routes(app):
         correo = data.get('correo')
         contrasena = data.get('contrasena')
 
+        if not nombre or not correo or not contrasena:
+            return jsonify({"message": "Todos los campos son requeridos"}), 400
+
         conn = get_db_connection()
         usuario_existente = conn.execute('SELECT * FROM Usuario WHERE correo = ?', (correo,)).fetchone()
         if usuario_existente:
             conn.close()
             return jsonify({"message": "El correo electrónico ya está registrado"}), 400
 
-        conn.execute('INSERT INTO Usuario (nombre, correo, contrasena) VALUES (?, ?, ?)', (nombre, correo, contrasena))
+        contrasena_hash = generate_password_hash(contrasena)
+        conn.execute('INSERT INTO Usuario (nombre, correo, contrasena) VALUES (?, ?, ?)', (nombre, correo, contrasena_hash))
         conn.commit()
         conn.close()
 
@@ -129,10 +136,17 @@ def register_routes(app):
         nombre_nuevo = data.get('nombre')
         correo_nuevo = data.get('correo')
 
+        if not nombre_nuevo or not correo_nuevo:
+            return jsonify({"message": "Nombre y correo son requeridos"}), 400
+
         conn = get_db_connection()
         conn.execute('UPDATE Usuario SET nombre = ?, correo = ? WHERE id = ?', (nombre_nuevo, correo_nuevo, usuario_id))
         conn.commit()
         conn.close()
 
         return jsonify({"message": "Información del usuario actualizada correctamente"}), 200
+
+
+
+
 
