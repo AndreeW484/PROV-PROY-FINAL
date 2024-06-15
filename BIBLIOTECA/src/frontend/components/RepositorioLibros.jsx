@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, CardContent, CardMedia, Typography, Button, Grid, Container, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Button, Grid, Container, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Box, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import libroIcono from './libro-abierto.png';
 
@@ -16,10 +16,10 @@ const LibroCard = styled(Card)(({ theme }) => ({
 
 const LibroMedia = styled(CardMedia)({
   height: 140,
-  width: '80%', // Ajusta la imagen para que no se recorte
+  width: '80%',
   backgroundSize: 'contain',
   margin: '20px auto',
-  objectFit: 'contain', // Asegura que la imagen se ajuste dentro del contenedor
+  objectFit: 'contain',
 });
 
 const AgregarButton = styled(Button)(({ theme }) => ({
@@ -37,6 +37,8 @@ const RepositorioLibros = ({ userId }) => {
   const [error, setError] = useState('');
   const [selectedLibro, setSelectedLibro] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const handleLibros = () => {
     axios.get('http://localhost:5000/libros/', {
@@ -59,7 +61,6 @@ const RepositorioLibros = ({ userId }) => {
 
   const handleAgregarLibro = async (libro) => {
     try {
-      console.log(`Agregando libro para el usuario ${userId}:`, libro);
       const token = localStorage.getItem('token');
       const response = await axios.post(
         `http://localhost:5000/usuarios/${userId}/libros`,
@@ -74,11 +75,16 @@ const RepositorioLibros = ({ userId }) => {
           },
         }
       );
-      console.log(response.data); // Debería mostrar el mensaje de éxito de la API
-      // Actualizar la lista de libros después de agregar uno nuevo si es necesario
+      setSnackbarMessage('Libro agregado a la biblioteca personal');
+      setOpenSnackbar(true);
     } catch (error) {
+      if (error.response && error.response.status === 400) {
+        setSnackbarMessage('El libro ya existe en la biblioteca personal');
+      } else {
+        setSnackbarMessage('Error al agregar el libro');
+      }
+      setOpenSnackbar(true);
       console.error('Error al agregar libro:', error);
-      // Manejo del error, por ejemplo, mostrando un mensaje al usuario
     }
   };
 
@@ -91,11 +97,17 @@ const RepositorioLibros = ({ userId }) => {
     setOpenDialog(false);
   };
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
   return (
     <Container>
-      <Typography variant="h4" component="h2" gutterBottom>
-        REPOSITORIO DE LIBROS:
-      </Typography>
+      <Box display="flex" justifyContent="center" mt={2} mb={2}>
+        <Typography variant="h4" component="h2" gutterBottom>
+          REPOSITORIO DE LIBROS
+        </Typography>
+      </Box>
       {error && <Typography color="error">{error}</Typography>}
       <Grid container justifyContent="center">
         {libros.map((libro) => (
@@ -158,6 +170,11 @@ const RepositorioLibros = ({ userId }) => {
           </>
         )}
       </Dialog>
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('Error') ? 'error' : 'success'}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

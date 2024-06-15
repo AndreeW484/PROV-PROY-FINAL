@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Login from './frontend/components/PLogin'; 
 import RepositorioLibros from './frontend/components/RepositorioLibros';
 import BibliotecaPersonal from './frontend/components/BibliotecaPersonal';
+import { Container, Box, Button, AppBar, Toolbar, Typography } from '@mui/material';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -27,26 +28,33 @@ function App() {
 
   return (
     <div className="App">
-      {paginaActual === 'login' && !isLoggedIn && (
-        <Login onLogin={handleLogin} />
-      )}
-      {paginaActual !== 'login' && isLoggedIn && (
-        <>
-          <button onClick={handleLogout}>Cerrar sesión</button>
-          {paginaActual === 'repositorio' && (
-            <RepositorioLibros userId={userId} onNavigate={handleNavigate} />
+      <AppBar position="static">
+        <Toolbar>
+          {isLoggedIn && (
+            <Box display="flex" justifyContent="center" width="100%">
+              <Button color="inherit" onClick={() => handleNavigate('repositorio')}>Repositorio de Libros</Button>
+              <Button color="inherit" onClick={() => handleNavigate('biblioteca')}>Biblioteca Personal</Button>
+              <Button color="inherit" onClick={handleLogout}>Cerrar sesión</Button>
+            </Box>
           )}
-          {paginaActual === 'biblioteca' && (
-            <BibliotecaPersonal userId={userId} libros={librosBiblioteca} onNavigate={handleNavigate} />
-          )}
-        </>
-      )}
-      {isLoggedIn && (
-        <>
-          <button onClick={() => handleNavigate('repositorio')}>Ver Repositorio de Libros</button>
-          <button onClick={() => handleNavigate('biblioteca')}>Ver Biblioteca Personal</button>
-        </>
-      )}
+        </Toolbar>
+      </AppBar>
+
+      <Container>
+        {paginaActual === 'login' && !isLoggedIn && (
+          <Login onLogin={handleLogin} />
+        )}
+        {paginaActual !== 'login' && isLoggedIn && (
+          <>
+            {paginaActual === 'repositorio' && (
+              <RepositorioLibros userId={userId} onNavigate={handleNavigate} />
+            )}
+            {paginaActual === 'biblioteca' && (
+              <BibliotecaPersonal userId={userId} libros={librosBiblioteca} onNavigate={handleNavigate} />
+            )}
+          </>
+        )}
+      </Container>
     </div>
   );
 }

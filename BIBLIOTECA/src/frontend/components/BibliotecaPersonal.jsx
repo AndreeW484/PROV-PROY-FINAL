@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, CardContent, CardMedia, Typography, Button, Grid, Container } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Button, Grid, Container, Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import libroIcono from './libro-abierto.png';
 import libroIcono2 from './libro-cerrado.png';
@@ -17,10 +17,10 @@ const LibroCard = styled(Card)(({ theme }) => ({
 
 const LibroMedia = styled(CardMedia)({
   height: 140,
-  width: 'auto', // Ensure the image keeps its aspect ratio
+  width: 'auto',
   backgroundSize: 'contain',
-  margin: '10px auto', // Add margin to create space around the image
-  objectFit: 'contain', // Ensure the image fits within the container without being cropped
+  margin: '10px auto',
+  objectFit: 'contain',
 });
 
 const MarcarLeidoButton = styled(Button)(({ theme }) => ({
@@ -34,9 +34,19 @@ const EliminarButton = styled(Button)(({ theme }) => ({
   backgroundColor: 'red',
 }));
 
+const VerInfoButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  fontSize: '0.9em',
+}));
+
 const BibliotecaPersonal = ({ userId }) => {
   const [libros, setLibros] = useState([]);
   const [error, setError] = useState('');
+  const [selectedLibro, setSelectedLibro] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openInfoDialog, setOpenInfoDialog] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const fetchLibros = () => {
     axios.get(`http://localhost:5000/usuarios/${userId}/libros`, {
@@ -82,6 +92,8 @@ const BibliotecaPersonal = ({ userId }) => {
     })
     .then(response => {
       setLibros(libros.filter(l => l.id !== libro.id));
+      setSnackbarMessage('Libro eliminado de la biblioteca personal');
+      setOpenSnackbar(true);
     })
     .catch(error => {
       setError('Error al eliminar el libro de la biblioteca personal');
@@ -89,11 +101,39 @@ const BibliotecaPersonal = ({ userId }) => {
     });
   };
 
+  const handleEliminarConfirm = (libro) => {
+    setSelectedLibro(libro);
+    setOpenDialog(true);
+  };
+
+  const handleConfirmClose = (confirmed) => {
+    setOpenDialog(false);
+    if (confirmed && selectedLibro) {
+      handleEliminarLibro(selectedLibro);
+    }
+    setSelectedLibro(null);
+  };
+
+  const handleVerInfo = (libro) => {
+    setSelectedLibro(libro);
+    setOpenInfoDialog(true);
+  };
+
+  const handleCloseInfoDialog = () => {
+    setOpenInfoDialog(false);
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
+
   return (
     <Container>
-      <Typography variant="h4" component="h2" gutterBottom>
-        BIBLIOTECA PERSONAL
-      </Typography>
+      <Box display="flex" justifyContent="center" mt={2} mb={2}>
+        <Typography variant="h4" component="h2" gutterBottom>
+          BIBLIOTECA PERSONAL:
+        </Typography>
+      </Box>
       {error && <Typography color="error">{error}</Typography>}
       <Grid container justifyContent="center">
         {libros.map((libro) => (
@@ -118,10 +158,17 @@ const BibliotecaPersonal = ({ userId }) => {
                 >
                   Marcar como Leído
                 </MarcarLeidoButton>
+                <VerInfoButton
+                  variant="contained"
+                  color="info"
+                  onClick={() => handleVerInfo(libro)}
+                >
+                  Ver Información
+                </VerInfoButton>
                 <EliminarButton
                   variant="contained"
                   color="warning"
-                  onClick={() => handleEliminarLibro(libro)}
+                  onClick={() => handleEliminarConfirm(libro)}
                 >
                   Eliminar de Biblioteca Personal
                 </EliminarButton>
@@ -130,6 +177,58 @@ const BibliotecaPersonal = ({ userId }) => {
           </Grid>
         ))}
       </Grid>
+      <Dialog open={openDialog} onClose={() => handleConfirmClose(false)}>
+        <DialogTitle>Confirmar eliminación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Estás seguro de que deseas eliminar este libro de tu biblioteca personal?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleConfirmClose(false)}>Cancelar</Button>
+          <Button onClick={() => handleConfirmClose(true)} color="primary">
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openInfoDialog} onClose={handleCloseInfoDialog}>
+        {selectedLibro && (
+          <>
+            <DialogTitle>{selectedLibro.titulo}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                <strong>Autores:</strong> {selectedLibro.autores}
+              </DialogContentText>
+              <DialogContentText>
+                <strong>Editorial:</strong> {selectedLibro.editorial}
+              </DialogContentText>
+              <DialogContentText>
+                <strong>Fecha de Publicación:</strong> {selectedLibro.fecha_publicacion}
+              </DialogContentText>
+              <DialogContentText>
+                <strong>ISBN:</strong> {selectedLibro.isbn}
+              </DialogContentText>
+              <DialogContentText>
+                <strong>Número de Páginas:</strong> {selectedLibro.numero_paginas}
+              </DialogContentText>
+              <DialogContentText>
+                <strong>Género:</strong> {Array.isArray(selectedLibro.genero) ? selectedLibro.genero.map(genero => genero.replace(/\[|\]|'/g, '')).join(', ') : selectedLibro.genero.replace(/\[|\]|'/g, '')}
+              </DialogContentText>
+              <DialogContentText>
+                <strong>Idioma:</strong> {selectedLibro.idioma}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseInfoDialog}>Cerrar</Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+      <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+        <Alert onClose={handleCloseSnackbar} severity="success">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
