@@ -22,7 +22,7 @@ const Login = ({ onLogin }) => {
     })
     .then(data => {
       if (data.access_token) {
-        onLogin(data.access_token);
+        onLogin(data.access_token, data.user_id); // Llamar a onLogin con el token y el user_id
       } else {
         setError(data.message);
       }
@@ -56,7 +56,7 @@ const Login = ({ onLogin }) => {
           variant="outlined"
           margin="normal"
         />
-        <Box mt={5}> {/* Espacio adicional agregado aquí */}
+        <Box mt={5}>
           <Button variant="contained" onClick={handleLogin} color="primary">Iniciar sesión</Button>
         </Box>
       </Box>

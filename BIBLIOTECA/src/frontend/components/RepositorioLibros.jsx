@@ -16,8 +16,10 @@ const LibroCard = styled(Card)(({ theme }) => ({
 
 const LibroMedia = styled(CardMedia)({
   height: 140,
+  width: '80%', // Ajusta la imagen para que no se recorte
   backgroundSize: 'contain',
-  margin: 'auto',
+  margin: '20px auto',
+  objectFit: 'contain', // Asegura que la imagen se ajuste dentro del contenedor
 });
 
 const AgregarButton = styled(Button)(({ theme }) => ({
@@ -30,7 +32,7 @@ const VerInfoButton = styled(Button)(({ theme }) => ({
   fontSize: '0.9em',
 }));
 
-const RepositorioLibros = ({ onAgregarLibro }) => {
+const RepositorioLibros = ({ userId }) => {
   const [libros, setLibros] = useState([]);
   const [error, setError] = useState('');
   const [selectedLibro, setSelectedLibro] = useState(null);
@@ -55,8 +57,29 @@ const RepositorioLibros = ({ onAgregarLibro }) => {
     handleLibros();
   }, []);
 
-  const handleAgregarLibro = (libro) => {
-    onAgregarLibro(libro);
+  const handleAgregarLibro = async (libro) => {
+    try {
+      console.log(`Agregando libro para el usuario ${userId}:`, libro);
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `http://localhost:5000/usuarios/${userId}/libros`,
+        {
+          id_libro: libro.id,
+          estado_libro: 'no leído',
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log(response.data); // Debería mostrar el mensaje de éxito de la API
+      // Actualizar la lista de libros después de agregar uno nuevo si es necesario
+    } catch (error) {
+      console.error('Error al agregar libro:', error);
+      // Manejo del error, por ejemplo, mostrando un mensaje al usuario
+    }
   };
 
   const handleVerInfo = (libro) => {
@@ -70,7 +93,7 @@ const RepositorioLibros = ({ onAgregarLibro }) => {
 
   return (
     <Container>
-      <Typography variant="h4" component="h2" container justifyContent="center" gutterBottom>
+      <Typography variant="h4" component="h2" gutterBottom>
         REPOSITORIO DE LIBROS:
       </Typography>
       {error && <Typography color="error">{error}</Typography>}
@@ -88,7 +111,7 @@ const RepositorioLibros = ({ onAgregarLibro }) => {
                   color="info"
                   onClick={() => handleVerInfo(libro)}
                 >
-                  Ver Informacion
+                  Ver Información
                 </VerInfoButton>
                 <AgregarButton
                   variant="contained"
@@ -97,7 +120,6 @@ const RepositorioLibros = ({ onAgregarLibro }) => {
                 >
                   Agregar a Biblioteca Personal
                 </AgregarButton>
-                
               </CardContent>
             </LibroCard>
           </Grid>

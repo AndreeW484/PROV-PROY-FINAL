@@ -27,8 +27,7 @@ def init_db():
             isbn TEXT,  -- ISBN del libro
             numero_paginas INTEGER,  -- Número de páginas del libro
             genero VARCHAR(50),  -- Género del libro
-            idioma VARCHAR(50),  -- Idioma del libro
-            estado_libro VARCHAR(20)  -- Estado actual del libro
+            idioma VARCHAR(50)  -- Idioma del libro
         )
     ''')
     
@@ -37,6 +36,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS Usuario_Libro (
             id_usuario INTEGER,  -- ID del usuario
             id_libro INTEGER,  -- ID del libro
+            estado_libro VARCHAR(20),  -- Estado actual del libro
             FOREIGN KEY(id_usuario) REFERENCES Usuario(id),  -- Clave foránea que referencia al ID del usuario
             FOREIGN KEY(id_libro) REFERENCES Libro(id),  -- Clave foránea que referencia al ID del libro
             PRIMARY KEY (id_usuario, id_libro)  -- Clave primaria compuesta por el ID del usuario y del libro

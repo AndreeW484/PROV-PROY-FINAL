@@ -31,7 +31,14 @@ const theme = createTheme({
     },
     info: {
       main: '#7575CF'
+    },
+    warning: {
+      main: '#560319'
+    },
+    success: {
+      main: '#8686AF'
     }
+
   },
 });
 

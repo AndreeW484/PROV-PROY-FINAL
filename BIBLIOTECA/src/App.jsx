@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
-import Login from './frontend/components/PLogin';
+import Login from './frontend/components/PLogin'; 
 import RepositorioLibros from './frontend/components/RepositorioLibros';
 import BibliotecaPersonal from './frontend/components/BibliotecaPersonal';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(null);
+  const [userId, setUserId] = useState(null); // Estado para almacenar el ID de usuario
   const [librosBiblioteca, setLibrosBiblioteca] = useState([]);
   const [paginaActual, setPaginaActual] = useState('login');
 
-  const handleLogin = () => {
+  const handleLogin = (accessToken, userId) => {
+    setUserId(userId); // Almacenar el ID de usuario al iniciar sesión
     setIsLoggedIn(true);
+    setPaginaActual('repositorio'); // Cambiar a la página de repositorio después del login
   };
 
   const handleNavigate = (pagina) => {
     setPaginaActual(pagina);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserId(null); // Limpiar el ID de usuario al cerrar sesión
+    setPaginaActual('login'); // Cambiar a la página de login al cerrar sesión
   };
 
   return (
@@ -24,12 +32,12 @@ function App() {
       )}
       {paginaActual !== 'login' && isLoggedIn && (
         <>
-          <button onClick={() => setIsLoggedIn(false)}>Cerrar sesión</button>
+          <button onClick={handleLogout}>Cerrar sesión</button>
           {paginaActual === 'repositorio' && (
-            <RepositorioLibros onNavigate={handleNavigate} />
+            <RepositorioLibros userId={userId} onNavigate={handleNavigate} />
           )}
           {paginaActual === 'biblioteca' && (
-            <BibliotecaPersonal libros={librosBiblioteca} onNavigate={handleNavigate} />
+            <BibliotecaPersonal userId={userId} libros={librosBiblioteca} onNavigate={handleNavigate} />
           )}
         </>
       )}

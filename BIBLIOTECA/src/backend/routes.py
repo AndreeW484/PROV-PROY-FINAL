@@ -21,7 +21,7 @@ def register_routes(app):
     def get_libros_usuario(id_usuario):
         conn = get_db_connection()
         libros_usuario = conn.execute('''
-            SELECT Libro.*
+            SELECT Libro.*, Usuario_Libro.estado_libro
             FROM Libro
             INNER JOIN Usuario_Libro ON Libro.id = Usuario_Libro.id_libro
             WHERE Usuario_Libro.id_usuario = ?
@@ -34,6 +34,7 @@ def register_routes(app):
     def agregar_libro_usuario(id_usuario):
         data = request.json
         id_libro = data.get('id_libro')
+        estado_libro = data.get('estado_libro', 'no leído')
 
         conn = get_db_connection()
         libro_existente = conn.execute('''
@@ -46,9 +47,9 @@ def register_routes(app):
             return jsonify({"message": "El libro ya está en la biblioteca del usuario"}), 400
 
         conn.execute('''
-            INSERT INTO Usuario_Libro (id_usuario, id_libro) 
-            VALUES (?, ?)
-        ''', (id_usuario, id_libro))
+            INSERT INTO Usuario_Libro (id_usuario, id_libro, estado_libro) 
+            VALUES (?, ?, ?)
+        ''', (id_usuario, id_libro, estado_libro))
         conn.commit()
         conn.close()
 
@@ -76,6 +77,32 @@ def register_routes(app):
 
         return jsonify({"message": "Libro eliminado de la biblioteca del usuario con ID {}".format(id_usuario)}), 200
 
+    # Ruta para actualizar el estado de un libro en la biblioteca de un usuario
+    @app.route('/usuarios/<int:id_usuario>/libros/<int:id_libro>', methods=['PUT'])
+    def actualizar_estado_libro(id_usuario, id_libro):
+        data = request.json
+        nuevo_estado = data.get('estado_libro')
+
+        conn = get_db_connection()
+        libro_existente = conn.execute('''
+            SELECT * FROM Usuario_Libro 
+            WHERE id_usuario = ? AND id_libro = ?
+        ''', (id_usuario, id_libro)).fetchone()
+
+        if not libro_existente:
+            conn.close()
+            return jsonify({"message": "El libro no está en la biblioteca del usuario"}), 404
+
+        conn.execute('''
+            UPDATE Usuario_Libro 
+            SET estado_libro = ? 
+            WHERE id_usuario = ? AND id_libro = ?
+        ''', (nuevo_estado, id_usuario, id_libro))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Estado del libro actualizado"}), 200
+
     # Ruta para iniciar sesión de usuario
     @app.route('/usuarios/login', methods=['POST'])
     def login_usuario():
@@ -88,17 +115,17 @@ def register_routes(app):
 
         conn = get_db_connection()
         usuario = conn.execute('''
-            SELECT * FROM Usuario 
+            SELECT id, contrasena FROM Usuario 
             WHERE correo = ?
         ''', (correo,)).fetchone()
         conn.close()
 
         if usuario and check_password_hash(usuario['contrasena'], contrasena):
             access_token = create_access_token(identity=usuario['id'])
-            return jsonify({"access_token": access_token}), 200
+            return jsonify({"user_id": usuario['id'], "access_token": access_token}), 200
         else:
             return jsonify({"message": "Correo electrónico o contraseña incorrectos"}), 401
-
+        
     # Ruta para registrar un nuevo usuario
     @app.route('/usuarios/registro', methods=['POST'])
     def registro_usuario():
