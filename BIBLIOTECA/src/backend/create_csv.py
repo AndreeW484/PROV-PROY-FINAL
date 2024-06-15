@@ -20,13 +20,13 @@ column_mapping_corrected = {
 # Renombrar las columnas del dataframe a los nombres requeridos
 df.rename(columns=column_mapping_corrected, inplace=True)
 
-# Filtrar los registros que tienen valores completos en las columnas requeridas (menos 'estado_libro')
+# Filtrar los registros que tienen valores completos en las columnas requeridas 
 required_columns = ['titulo', 'autores', 'editorial', 'fecha_publicacion', 'isbn', 'numero_paginas', 'genero', 'idioma']
 df_filtered = df.dropna(subset=required_columns)
 
-# Seleccionar solo las columnas requeridas y asignar un valor por defecto para 'estado_libro'
+# Seleccionar solo las columnas requeridas
 df_filtered = df_filtered[required_columns]
-df_filtered['estado_libro'] = 'no leido'  # Asignar un valor por defecto a 'estado_libro'
+
 
 # Función para convertir la fecha a YYYY-MM-DD
 def convert_date(date_str):
@@ -105,7 +105,6 @@ def convert_date(date_str):
     except ValueError:
         pass
     
-    # Agregar aquí más bloques de código para otros formatos de fecha si es necesario
     
     print(f"Fecha no reconocida: {date_str}")
     return None
